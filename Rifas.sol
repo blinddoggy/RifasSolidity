@@ -10,8 +10,11 @@ contract Rifa is ERC721, Ownable {
     uint256 public currentTokenId = 0;
     
     IERC20 public usdtToken;
-    constructor(string memory name, string memory symbol, IERC20 _usdtToken) ERC721(name, symbol) {
+    uint256 public nftPrice; // price for each NFT
+
+    constructor(string memory name, string memory symbol, IERC20 _usdtToken, uint256 _nftPrice) ERC721(name, symbol) {
         usdtToken = _usdtToken;
+        nftPrice = _nftPrice;
     }
     
     function mint(address to, uint256 numTokens) public onlyOwner {
@@ -34,12 +37,16 @@ contract Rifa is ERC721, Ownable {
     }
 }
 
+
+//Fabrica
 contract ProjectRifasFactory is Ownable {
 
     IERC20 public usdtToken;
+    uint256 public nftPrice; // price for each NFT
 
-    constructor(IERC20 _usdtToken) {
+    constructor(IERC20 _usdtToken,uint256 _nftPrice) {
         usdtToken = _usdtToken;
+        nftPrice = _nftPrice;
     }
 
    struct Project {
@@ -53,7 +60,7 @@ contract ProjectRifasFactory is Ownable {
     Project[] public projects;
 
     function createProject(string memory name, string memory symbol, uint256 numTokens) public onlyOwner returns (Project memory) {
-        Rifa newRifa = new Rifa(name, symbol, usdtToken);
+        Rifa newRifa = new Rifa(name, symbol, usdtToken , 2);
         newRifa.mint(address(newRifa), numTokens); 
         Project memory newProject = Project({
             rifa: newRifa,
@@ -100,5 +107,14 @@ contract ProjectRifasFactory is Ownable {
         Project storage project = projects[projectId];
         return usdtToken.balanceOf(address(project.rifa));
     }
+
+
+function buy(uint256 amount) public {
+    // Asegúrate de que el remitente ha aprobado al menos 'amount' USDT para ser transferidos por este contrato
+    require(usdtToken.allowance(msg.sender, address(this)) >= amount, "Insufficient allowance");
+
+    // Retira 'amount' USDT del remitente y envíalos a este contrato
+    require(usdtToken.transferFrom(msg.sender, address(this), amount), "Transfer failed");
+}
 
 }
