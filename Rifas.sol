@@ -96,4 +96,9 @@ contract ProjectRifasFactory is Ownable {
         project.rifa.transferUSDT(to, amount);
     }
 
+    function getBalanceOfUSDT(uint256 projectId) public view returns (uint256) {
+        Project storage project = projects[projectId];
+        return usdtToken.balanceOf(address(project.rifa));
+    }
+
 }
